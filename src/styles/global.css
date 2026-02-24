@@ -6,23 +6,44 @@
 
 :root {
   --luxury-gold: #d4af37;
+  --luxury-gold-light: #f4e4c1;
   --luxury-dark: #0a0a0a;
   --luxury-black: #000000;
   --luxury-gray: #2a2a2a;
   --luxury-light-gray: #3a3a3a;
   --luxury-accent: #c9a961;
   --luxury-rose: #f4c6d4;
+  --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 body {
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
-  font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #2a1a0a 100%);
+  font-family: 'Segoe UI', 'Helvetica Neue', 'Courier Prime', Arial, sans-serif;
   color: #ffffff;
   letter-spacing: 0.5px;
   line-height: 1.6;
   padding-top: 80px;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 html {
   scroll-behavior: smooth;
+}
+
+/* Typography Enhancements */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+p {
+  font-weight: 300;
+  letter-spacing: 0.3px;
+}
+
+a {
+  color: #f4e4c1;
+  transition: var(--transition-smooth);
 }
