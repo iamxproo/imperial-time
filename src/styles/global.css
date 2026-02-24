@@ -1,0 +1,28 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --luxury-gold: #d4af37;
+  --luxury-dark: #0a0a0a;
+  --luxury-black: #000000;
+  --luxury-gray: #2a2a2a;
+  --luxury-light-gray: #3a3a3a;
+  --luxury-accent: #c9a961;
+  --luxury-rose: #f4c6d4;
+}
+
+body {
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+  line-height: 1.6;
+  padding-top: 80px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
