@@ -1,0 +1,299 @@
+.upi-payment-container {
+  width: 100%;
+}
+
+.upi-form-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
+  border: 2px solid #d4af37;
+  border-radius: 15px;
+  padding: 30px;
+  box-shadow: 0 10px 40px rgba(212, 175, 55, 0.15);
+}
+
+.upi-header {
+  text-align: center;
+  margin-bottom: 30px;
+  border-bottom: 2px solid #d4af37;
+  padding-bottom: 20px;
+}
+
+.upi-header h3 {
+  color: #1a1a1a;
+  font-size: 24px;
+  margin: 0;
+  margin-bottom: 10px;
+}
+
+.upi-amount {
+  color: #d4af37;
+  font-size: 32px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.upi-form {
+  width: 100%;
+}
+
+.form-group {
+  margin-bottom: 25px;
+}
+
+.form-label {
+  display: block;
+  color: #333;
+  font-weight: 600;
+  margin-bottom: 10px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.upi-input {
+  width: 100%;
+  padding: 15px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.5px;
+}
+
+.upi-input:focus {
+  outline: none;
+  border-color: #d4af37;
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+}
+
+.upi-input:disabled {
+  background: #f0f0f0;
+  cursor: not-allowed;
+}
+
+.upi-hint {
+  color: #999;
+  font-size: 12px;
+  margin-top: 8px;
+  margin-bottom: 0;
+}
+
+.upi-details {
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 25px;
+  border-left: 4px solid #d4af37;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  color: #666;
+  font-size: 14px;
+}
+
+.detail-row:last-child {
+  margin-bottom: 0;
+}
+
+.detail-row.total {
+  border-top: 2px solid #ddd;
+  padding-top: 12px;
+  margin-top: 12px;
+  color: #1a1a1a;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.payment-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.pay-button,
+.cancel-button {
+  padding: 15px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.pay-button {
+  background: linear-gradient(135deg, #d4af37 0%, #c4a02b 100%);
+  color: #1a1a1a;
+  box-shadow: 0 5px 20px rgba(212, 175, 55, 0.3);
+}
+
+.pay-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(212, 175, 55, 0.5);
+}
+
+.pay-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cancel-button {
+  background: #f0f0f0;
+  color: #666;
+}
+
+.cancel-button:hover:not(:disabled) {
+  background: #e0e0e0;
+  color: #333;
+}
+
+.cancel-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.security-info {
+  text-align: center;
+  color: #27ae60;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 12px;
+  background: #d4edda;
+  border-radius: 5px;
+}
+
+/* Payment Animation */
+.payment-animation {
+  width: 100%;
+  height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
+  border: 2px solid #d4af37;
+  border-radius: 15px;
+}
+
+.animation-content {
+  text-align: center;
+  padding: 40px;
+}
+
+.checkmark-animation {
+  margin-bottom: 30px;
+}
+
+.checkmark {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto;
+  border: 3px solid #d4af37;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 60px;
+  color: #d4af37;
+  animation: checkmarkPulse 1s ease-out;
+}
+
+@keyframes checkmarkPulse {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animation-content h2 {
+  color: #1a1a1a;
+  font-size: 28px;
+  margin: 20px 0 10px;
+}
+
+.animation-content p {
+  color: #666;
+  font-size: 16px;
+  margin: 8px 0;
+}
+
+.animation-content .amount {
+  color: #d4af37;
+  font-size: 32px;
+  font-weight: bold;
+  margin: 15px 0;
+}
+
+.loading-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 30px;
+}
+
+.loading-dots span {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #d4af37;
+  animation: dotPulse 1.4s ease-in-out infinite;
+}
+
+.loading-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.loading-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes dotPulse {
+  0%, 60%, 100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 768px) {
+  .upi-form-card {
+    padding: 20px;
+  }
+
+  .payment-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .animation-content {
+    padding: 20px;
+  }
+
+  .checkmark {
+    width: 80px;
+    height: 80px;
+    font-size: 45px;
+  }
+
+  .animation-content h2 {
+    font-size: 22px;
+  }
+
+  .animation-content .amount {
+    font-size: 24px;
+  }
+}

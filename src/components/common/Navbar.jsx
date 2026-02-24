@@ -306,6 +306,34 @@ const Navbar = () => {
           </div>
         )}
 
+        {/* Admin Link */}
+        <Link to="/admin/login" style={{ textDecoration: "none" }}>
+          <span className="nav-link-item" style={{
+            color: "#d4af37",
+            fontSize: "12px",
+            fontWeight: "600",
+            letterSpacing: "1px",
+            position: "relative",
+            transition: "all 0.3s ease",
+            textTransform: "uppercase",
+            cursor: "pointer",
+            paddingBottom: "5px",
+            opacity: "0.8",
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.color = "#fff";
+            e.target.style.borderBottom = "2px solid #d4af37";
+            e.target.style.opacity = "1";
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.color = "#d4af37";
+            e.target.style.borderBottom = "none";
+            e.target.style.opacity = "0.8";
+          }}>
+            ⚙️ Admin
+          </span>
+        </Link>
+
         {/* Cart Icon */}
         <Link to="/cart" style={{ textDecoration: "none", position: "relative" }}>
           <div style={{

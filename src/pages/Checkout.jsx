@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import UPIPayment from "../components/payment/UPIPayment";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 
@@ -7,7 +8,7 @@ const Checkout = () => {
   const { cart, clearCart } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
   const [orderDetails, setOrderDetails] = useState({
     name: user?.name || "",
     email: user?.email || "",
@@ -15,98 +16,56 @@ const Checkout = () => {
     address: "",
   });
 
-  // Load Razorpay script
-  useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    document.body.appendChild(script);
-    return () => document.body.removeChild(script);
-  }, []);
-
   // Calculate totals
   const subtotal = cart.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
   const tax = subtotal * 0.18;
   const total = subtotal + tax;
 
-  const handlePayment = async (e) => {
+  const handleDeliverySubmit = (e) => {
     e.preventDefault();
     
     if (!orderDetails.name || !orderDetails.email || !orderDetails.phone || !orderDetails.address) {
-      alert("Please fill all details");
+      alert("Please fill all delivery details");
       return;
     }
 
-    setLoading(true);
-
-    try {
-      // Create order on backend (mock for now)
-      const orderId = `ORDER_${Date.now()}`;
-      
-      const options = {
-        key: "rzp_test_1DP5owbHnPAFZF", // Test key (public)
-        amount: Math.round(total * 100), // Amount in paise
-        currency: "INR",
-        name: "IMPERIAL TIME",
-        description: `Order ${orderId}`,
-        order_id: orderId,
-        prefill: {
-          name: orderDetails.name,
-          email: orderDetails.email,
-          contact: orderDetails.phone,
-        },
-        notes: {
-          address: orderDetails.address,
-          items: cart.length,
-        },
-        handler: function (response) {
-          // Payment successful
-          handlePaymentSuccess(response, orderId);
-        },
-        modal: {
-          ondismiss: function () {
-            setLoading(false);
-            alert("Payment cancelled");
-          },
-        },
-      };
-
-      const rzp = new window.Razorpay(options);
-      rzp.open();
-    } catch (error) {
-      console.error("Payment error:", error);
-      alert("Error initiating payment");
-      setLoading(false);
-    }
+    setShowPayment(true);
   };
 
-  const handlePaymentSuccess = (response, orderId) => {
-    // Store order details
-    const orderData = {
-      orderId: orderId,
-      razorpayOrderId: response.razorpay_order_id,
-      razorpayPaymentId: response.razorpay_payment_id,
-      razorpaySignature: response.razorpay_signature,
-      customerDetails: orderDetails,
-      items: cart,
-      total: total,
-      tax: tax,
-      subtotal: subtotal,
-      status: "confirmed",
-      date: new Date().toLocaleString(),
-    };
+  const handlePaymentSuccess = (paymentData) => {
+    // Simple demo mode - just show success without backend
+    const items = cart.map(item => ({
+      id: item.id,
+      name: item.name,
+      quantity: item.quantity || 1,
+      price: item.price
+    }));
 
-    // Save to localStorage
-    const orders = JSON.parse(localStorage.getItem("orders")) || [];
-    orders.push(orderData);
-    localStorage.setItem("orders", JSON.stringify(orders));
+    const orderData = {
+      id: Math.floor(Math.random() * 10000) + 1,
+      orderNumber: `IMP-${Date.now()}`,
+      status: "COMPLETED",
+      paymentMethod: "UPI",
+      upiId: paymentData.upiId,
+      transactionId: paymentData.transactionId
+    };
 
     // Clear cart
     clearCart();
-    setLoading(false);
 
     // Redirect to success page
-    navigate("/order-success", { state: { order: orderData } });
+    navigate("/payment-success", { 
+      state: { 
+        order: {
+          ...orderData,
+          customerDetails: orderDetails,
+          items: items,
+          subtotal: subtotal,
+          tax: Math.round(tax),
+          totalAmount: Math.round(total)
+        }
+      } 
+    });
   };
 
   if (cart.length === 0) {
@@ -200,93 +159,120 @@ const Checkout = () => {
       </h1>
 
       <div className="checkout-container">
-        {/* Checkout Form */}
+        {/* Checkout Form or Payment */}
         <div>
-          <h2 style={{ color: "#d4af37", marginBottom: "30px", fontSize: "24px" }}>
-            Delivery Details
-          </h2>
-          <form onSubmit={handlePayment}>
-            <div className="form-group">
-              <label>Full Name *</label>
-              <input
-                type="text"
-                value={orderDetails.name}
-                onChange={(e) => setOrderDetails({ ...orderDetails, name: e.target.value })}
-                placeholder="Enter your name"
-                required
+          {!showPayment ? (
+            <>
+              <h2 style={{ color: "#d4af37", marginBottom: "30px", fontSize: "24px" }}>
+                Delivery Details
+              </h2>
+              <form onSubmit={handleDeliverySubmit}>
+                <div className="form-group">
+                  <label>Full Name *</label>
+                  <input
+                    type="text"
+                    value={orderDetails.name}
+                    onChange={(e) => setOrderDetails({ ...orderDetails, name: e.target.value })}
+                    placeholder="Enter your name"
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Email Address *</label>
+                  <input
+                    type="email"
+                    value={orderDetails.email}
+                    onChange={(e) => setOrderDetails({ ...orderDetails, email: e.target.value })}
+                    placeholder="Enter your email"
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Phone Number *</label>
+                  <input
+                    type="tel"
+                    value={orderDetails.phone}
+                    onChange={(e) => setOrderDetails({ ...orderDetails, phone: e.target.value })}
+                    placeholder="Enter your phone number"
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Delivery Address *</label>
+                  <textarea
+                    value={orderDetails.address}
+                    onChange={(e) => setOrderDetails({ ...orderDetails, address: e.target.value })}
+                    placeholder="Enter your full delivery address"
+                    rows="4"
+                    required
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  style={{
+                    width: "100%",
+                    background: "linear-gradient(135deg, #d4af37 0%, #c9a961 100%)",
+                    border: "none",
+                    color: "#0a0a0a",
+                    padding: "16px",
+                    fontSize: "16px",
+                    fontWeight: "700",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    transition: "all 0.3s ease",
+                    textTransform: "uppercase",
+                    letterSpacing: "2px",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = "translateY(-2px)";
+                    e.target.style.boxShadow = "0 10px 30px rgba(212, 175, 55, 0.3)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = "translateY(0)";
+                    e.target.style.boxShadow = "none";
+                  }}
+                >
+                  Continue to Payment
+                </button>
+
+                <p style={{ color: "#888", fontSize: "12px", marginTop: "15px", textAlign: "center" }}>
+                  🔒 Secure payment with UPI
+                </p>
+              </form>
+            </>
+          ) : (
+            <>
+              <h2 style={{ color: "#d4af37", marginBottom: "30px", fontSize: "24px" }}>
+                Payment Details
+              </h2>
+              <UPIPayment
+                subtotal={subtotal}
+                tax={Math.round(tax)}
+                total={Math.round(total)}
+                onPaymentSuccess={handlePaymentSuccess}
               />
-            </div>
-
-            <div className="form-group">
-              <label>Email Address *</label>
-              <input
-                type="email"
-                value={orderDetails.email}
-                onChange={(e) => setOrderDetails({ ...orderDetails, email: e.target.value })}
-                placeholder="Enter your email"
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Phone Number *</label>
-              <input
-                type="tel"
-                value={orderDetails.phone}
-                onChange={(e) => setOrderDetails({ ...orderDetails, phone: e.target.value })}
-                placeholder="Enter your phone number"
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Delivery Address *</label>
-              <textarea
-                value={orderDetails.address}
-                onChange={(e) => setOrderDetails({ ...orderDetails, address: e.target.value })}
-                placeholder="Enter your full delivery address"
-                rows="4"
-                required
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                width: "100%",
-                background: loading ? "rgba(212, 175, 55, 0.5)" : "linear-gradient(135deg, #d4af37 0%, #c9a961 100%)",
-                border: "none",
-                color: "#0a0a0a",
-                padding: "16px",
-                fontSize: "16px",
-                fontWeight: "700",
-                borderRadius: "4px",
-                cursor: loading ? "not-allowed" : "pointer",
-                transition: "all 0.3s ease",
-                textTransform: "uppercase",
-                letterSpacing: "2px",
-              }}
-              onMouseEnter={(e) => {
-                if (!loading) {
-                  e.target.style.transform = "translateY(-2px)";
-                  e.target.style.boxShadow = "0 10px 30px rgba(212, 175, 55, 0.3)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!loading) {
-                  e.target.style.transform = "translateY(0)";
-                  e.target.style.boxShadow = "none";
-                }
-              }}
-            >
-              {loading ? "Processing..." : "Proceed to Payment"}
-            </button>
-
-            <p style={{ color: "#888", fontSize: "12px", marginTop: "15px", textAlign: "center" }}>
-              🔒 Secure payment powered by Razorpay
-            </p>
-          </form>
+              <button
+                onClick={() => setShowPayment(false)}
+                style={{
+                  marginTop: "20px",
+                  background: "transparent",
+                  border: "1px solid rgba(212, 175, 55, 0.5)",
+                  color: "#d4af37",
+                  padding: "12px",
+                  fontSize: "14px",
+                  cursor: "pointer",
+                  borderRadius: "4px",
+                  width: "100%",
+                }}
+              >
+                ← Back to Delivery Details
+              </button>
+            </>
+          )}
         </div>
 
         {/* Order Summary */}
