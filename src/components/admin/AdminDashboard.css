@@ -43,6 +43,44 @@
   background: #c4a02b;
 }
 
+.nav-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.nav-tab {
+  background: transparent;
+  color: #aaa;
+  border: 1px solid #444;
+  padding: 8px 18px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.nav-tab:hover {
+  border-color: #d4af37;
+  color: #d4af37;
+}
+
+.nav-tab.active {
+  background: #d4af37;
+  color: #1a1a1a;
+  border-color: #d4af37;
+}
+
+.watch-msg {
+  background: #1a1a1a;
+  color: #d4af37;
+  border: 1px solid #d4af37;
+  padding: 10px 16px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
 .dashboard-container {
   padding: 30px;
   max-width: 1400px;
