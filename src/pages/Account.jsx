@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { orderAPI } from "../services/api";
 
 const Account = () => {
   const { user, logout } = useAuth();
@@ -24,29 +25,51 @@ const Account = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState(userData);
 
-  const orders = [
-    {
-      id: "ORD-001",
-      date: "2025-02-20",
-      items: "Rolex Submariner",
-      amount: 1250000,
-      status: "Delivered",
-    },
-    {
-      id: "ORD-002",
-      date: "2025-02-15",
-      items: "Rolex Daytona",
-      amount: 1850000,
-      status: "In Transit",
-    },
-    {
-      id: "ORD-003",
-      date: "2025-02-10",
-      items: "Rolex Datejust",
-      amount: 950000,
-      status: "Processing",
-    },
-  ];
+  // Orders state (replaces placeholder static orders)
+  const [orders, setOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [cancellingId, setCancellingId] = useState(null);
+  const [cancelError, setCancelError] = useState('');
+
+  const handleCancelOrder = async (orderId) => {
+    if (!window.confirm('Are you sure you want to cancel this order?')) return;
+    setCancellingId(orderId);
+    setCancelError('');
+    try {
+      await orderAPI.cancelOrder(orderId);
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'CANCELLED' } : o));
+    } catch (err) {
+      setCancelError(err.message || 'Failed to cancel order');
+    } finally {
+      setCancellingId(null);
+    }
+  };
+
+  // Fetch user orders when Orders tab is active
+  useEffect(() => {
+    const fetchOrders = async () => {
+      if (!user) return;
+      setOrdersLoading(true);
+      try {
+        const userOrders = await orderAPI.getOrdersForUser(user.id);
+        const mapped = (userOrders || []).map((o) => ({
+          id: o.id,
+          date: o.createdAt || null,
+          amount: o.totalAmount ? Number(o.totalAmount) : 0,
+          status: o.status || "PENDING",
+          itemsCount: o.itemCount || o.itemsCount || 0,
+        }));
+        setOrders(mapped);
+      } catch (err) {
+        console.error("Failed to load orders:", err);
+        setOrders([]);
+      } finally {
+        setOrdersLoading(false);
+      }
+    };
+
+    if (activeTab === "orders") fetchOrders();
+  }, [activeTab, user]);
 
   const handleSaveProfile = () => {
     setUserData(editData);
@@ -100,15 +123,25 @@ const Account = () => {
         <div style={{ maxWidth: "800px", margin: "0 auto" }}>
           <div
             style={{
-              background: "linear-gradient(135deg, rgba(42, 42, 42, 0.8) 0%, rgba(26, 26, 26, 0.8) 100%)",
+              background:
+                "linear-gradient(135deg, rgba(42, 42, 42, 0.8) 0%, rgba(26, 26, 26, 0.8) 100%)",
               border: "2px solid rgba(212, 175, 55, 0.3)",
               borderRadius: "8px",
               padding: "40px",
               marginBottom: "30px",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px" }}>
-              <h2 style={{ color: "#d4af37", fontSize: "28px" }}>Profile Information</h2>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "30px",
+              }}
+            >
+              <h2 style={{ color: "#d4af37", fontSize: "28px" }}>
+                Profile Information
+              </h2>
               <button
                 onClick={() => setIsEditing(!isEditing)}
                 className="lux-btn"
@@ -176,8 +209,19 @@ const Account = () => {
                   { label: "City", value: userData.city },
                   { label: "Zip Code", value: userData.zipCode },
                 ].map((field, idx) => (
-                  <div key={idx} style={{ display: "grid", gridTemplateColumns: "150px 1fr" }}>
-                    <span style={{ color: "#b0b0b0", fontWeight: "500" }}>{field.label}:</span>
+                  <div
+                    key={idx}
+                    style={{ display: "grid", gridTemplateColumns: "150px 1fr" }}
+                  >
+                    <span
+                      style={{
+                        color: "#b0b0b0",
+                        fontWeight: "500",
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      {field.label}:
+                    </span>
                     <span style={{ color: "#ffffff" }}>{field.value}</span>
                   </div>
                 ))}
@@ -190,63 +234,106 @@ const Account = () => {
       {/* Orders Tab */}
       {activeTab === "orders" && (
         <div>
-          <h2 style={{ color: "#d4af37", marginBottom: "30px", fontSize: "24px" }}>Order History</h2>
-          <div style={{ display: "grid", gap: "20px" }}>
-            {orders.map((order) => (
-              <div
-                key={order.id}
-                style={{
-                  background: "linear-gradient(135deg, rgba(42, 42, 42, 0.8) 0%, rgba(26, 26, 26, 0.8) 100%)",
-                  border: "2px solid rgba(212, 175, 55, 0.3)",
-                  borderRadius: "8px",
-                  padding: "25px",
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr 1fr 1fr",
-                  gap: "20px",
-                  alignItems: "center",
-                }}
-              >
-                <div>
-                  <p style={{ color: "#b0b0b0", fontSize: "12px", marginBottom: "5px" }}>Order ID</p>
-                  <p style={{ color: "#d4af37", fontWeight: "600", fontSize: "16px" }}>{order.id}</p>
+          <h2
+            style={{
+              color: "#d4af37",
+              marginBottom: "30px",
+              fontSize: "24px",
+            }}
+          >
+            Order History
+          </h2>
+          {cancelError && (
+            <div style={{ background: 'rgba(255,80,80,0.1)', border: '1px solid rgba(255,80,80,0.4)', borderRadius: '8px', padding: '12px 16px', marginBottom: '20px', color: '#ff6b6b', fontSize: '14px' }}>
+              ⚠️ {cancelError}
+            </div>
+          )}
+          {ordersLoading ? (
+            <div style={{ color: "#b0b0b0", textAlign: "center", padding: "20px" }}>
+              Loading orders...
+            </div>
+          ) : (
+            <div style={{ display: "grid", gap: "20px" }}>
+              {orders.length === 0 ? (
+                <div style={{ color: "#b0b0b0", textAlign: "center", padding: "20px" }}>
+                  No orders found.
                 </div>
-                <div>
-                  <p style={{ color: "#b0b0b0", fontSize: "12px", marginBottom: "5px" }}>Date</p>
-                  <p style={{ color: "#ffffff", fontSize: "14px" }}>{new Date(order.date).toLocaleDateString()}</p>
-                </div>
-                <div>
-                  <p style={{ color: "#b0b0b0", fontSize: "12px", marginBottom: "5px" }}>Amount</p>
-                  <p style={{ color: "#d4af37", fontWeight: "600", fontSize: "16px" }}>₹ {order.amount.toLocaleString()}</p>
-                </div>
-                <div>
-                  <p style={{ color: "#b0b0b0", fontSize: "12px", marginBottom: "5px" }}>Status</p>
+              ) : (
+                orders.map((order) => (
                   <div
+                    key={order.id}
                     style={{
-                      display: "inline-block",
-                      padding: "6px 16px",
                       background:
-                        order.status === "Delivered"
-                          ? "rgba(76, 175, 80, 0.2)"
-                          : order.status === "In Transit"
-                          ? "rgba(33, 150, 243, 0.2)"
-                          : "rgba(255, 193, 7, 0.2)",
-                      color:
-                        order.status === "Delivered"
-                          ? "#4CAF50"
-                          : order.status === "In Transit"
-                          ? "#2196F3"
-                          : "#FFC107",
-                      borderRadius: "4px",
-                      fontSize: "12px",
-                      fontWeight: "600",
+                        "linear-gradient(135deg, rgba(42, 42, 42, 0.8) 0%, rgba(26, 26, 26, 0.8) 100%)",
+                      border: `2px solid ${order.status === 'CANCELLED' ? 'rgba(255,80,80,0.3)' : 'rgba(212, 175, 55, 0.3)'}`,
+                      borderRadius: "8px",
+                      padding: "25px",
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr 1fr 1fr auto",
+                      gap: "20px",
+                      alignItems: "center",
                     }}
                   >
-                    {order.status}
+                    <div>
+                      <p style={{ color: "#b0b0b0", fontSize: "12px", marginBottom: "5px" }}>Order ID</p>
+                      <p style={{ color: "#d4af37", fontWeight: "600", fontSize: "16px" }}>#{order.id}</p>
+                    </div>
+                    <div>
+                      <p style={{ color: "#b0b0b0", fontSize: "12px", marginBottom: "5px" }}>Date</p>
+                      <p style={{ color: "#ffffff", fontSize: "14px" }}>
+                        {new Date(order.date).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div>
+                      <p style={{ color: "#b0b0b0", fontSize: "12px", marginBottom: "5px" }}>Amount</p>
+                      <p style={{ color: "#d4af37", fontWeight: "600", fontSize: "16px" }}>
+                        ₹ {order.amount.toLocaleString()}
+                      </p>
+                    </div>
+                    <div>
+                      <p style={{ color: "#b0b0b0", fontSize: "12px", marginBottom: "5px" }}>Status</p>
+                      <div style={{
+                        display: "inline-block", padding: "6px 16px",
+                        background:
+                          order.status === "COMPLETED" || order.status === "Delivered" ? "rgba(76,175,80,0.2)"
+                          : order.status === "CANCELLED" ? "rgba(255,80,80,0.2)"
+                          : order.status === "In Transit" ? "rgba(33,150,243,0.2)"
+                          : "rgba(255,193,7,0.2)",
+                        color:
+                          order.status === "COMPLETED" || order.status === "Delivered" ? "#4CAF50"
+                          : order.status === "CANCELLED" ? "#ff6b6b"
+                          : order.status === "In Transit" ? "#2196F3"
+                          : "#FFC107",
+                        borderRadius: "4px", fontSize: "12px", fontWeight: "600",
+                      }}>
+                        {order.status}
+                      </div>
+                    </div>
+                    <div>
+                      {order.status !== 'CANCELLED' && order.status !== 'DELIVERED' && (
+                        <button
+                          onClick={() => handleCancelOrder(order.id)}
+                          disabled={cancellingId === order.id}
+                          style={{
+                            padding: '8px 16px', borderRadius: '6px', fontSize: '12px', fontWeight: '700',
+                            cursor: cancellingId === order.id ? 'not-allowed' : 'pointer',
+                            background: 'rgba(255,80,80,0.1)',
+                            border: '1px solid rgba(255,80,80,0.5)',
+                            color: cancellingId === order.id ? '#888' : '#ff6b6b',
+                            transition: 'all 0.2s', whiteSpace: 'nowrap',
+                          }}
+                          onMouseEnter={(e) => { if (cancellingId !== order.id) e.currentTarget.style.background = 'rgba(255,80,80,0.25)'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,80,80,0.1)'; }}
+                        >
+                          {cancellingId === order.id ? 'Cancelling…' : 'Cancel Order'}
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
-          </div>
+                ))
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -255,14 +342,23 @@ const Account = () => {
         <div style={{ maxWidth: "800px", margin: "0 auto" }}>
           <div
             style={{
-              background: "linear-gradient(135deg, rgba(42, 42, 42, 0.8) 0%, rgba(26, 26, 26, 0.8) 100%)",
+              background:
+                "linear-gradient(135deg, rgba(42, 42, 42, 0.8) 0%, rgba(26, 26, 26, 0.8) 100%)",
               border: "2px solid rgba(212, 175, 55, 0.3)",
               borderRadius: "8px",
               padding: "40px",
               marginBottom: "30px",
             }}
           >
-            <h2 style={{ color: "#d4af37", marginBottom: "30px", fontSize: "24px" }}>Account Settings</h2>
+            <h2
+              style={{
+                color: "#d4af37",
+                marginBottom: "30px",
+                fontSize: "24px",
+              }}
+            >
+              Account Settings
+            </h2>
 
             {[
               {
@@ -293,19 +389,48 @@ const Account = () => {
                 }}
               >
                 <div>
-                  <p style={{ color: "#ffffff", fontWeight: "600", marginBottom: "5px" }}>{setting.title}</p>
-                  <p style={{ color: "#b0b0b0", fontSize: "14px" }}>{setting.description}</p>
+                  <p
+                    style={{
+                      color: "#ffffff",
+                      fontWeight: "600",
+                      marginBottom: "5px",
+                    }}
+                  >
+                    {setting.title}
+                  </p>
+                  <p style={{ color: "#b0b0b0", fontSize: "14px" }}>
+                    {setting.description}
+                  </p>
                 </div>
-                <label style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
-                  <input type="checkbox" defaultChecked style={{ width: "20px", height: "20px", cursor: "pointer" }} />
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    cursor: "pointer",
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    defaultChecked
+                    style={{
+                      width: "20px",
+                      height: "20px",
+                      cursor: "pointer",
+                    }}
+                  />
                 </label>
               </div>
             ))}
 
             <button
-              onClick={handleLogout}
+              onClick={logout}
               className="lux-btn"
-              style={{ marginTop: "30px", width: "100%", background: "#d9534f", borderColor: "#d9534f" }}
+              style={{
+                marginTop: "30px",
+                width: "100%",
+                background: "#d9534f",
+                borderColor: "#d9534f",
+              }}
             >
               Logout
             </button>

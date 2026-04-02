@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { userAPI } from "../services/api";
 
 const AuthContext = createContext(null);
 
@@ -15,23 +16,37 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const register = (userData) => {
-    const newUser = {
-      id: Date.now(),
-      ...userData,
-    };
-    localStorage.setItem("user", JSON.stringify(newUser));
-    setUser(newUser);
-    return newUser;
+  const register = async (userData) => {
+    try {
+      // Register user in backend
+      const backendUser = await userAPI.register({
+        firstName: userData.name.split(" ")[0],
+        lastName: userData.name.split(" ").slice(1).join(" ") || "",
+        email: userData.email,
+        password: userData.password,
+        phoneNumber: userData.phone || "",
+        address: userData.address || ""
+      });
+
+      // Do NOT auto-login the user after registration.
+      // Return the backend response to the caller so they can show a success message
+      // and redirect the user to the login page explicitly.
+      return backendUser;
+    } catch (error) {
+      console.error("Registration failed:", error);
+      throw error;
+    }
   };
 
-  const login = (email, password) => {
-    // In a real app, this would validate against a backend
-    // For demo, we'll just create a user with the email
+  const login = async (email, password) => {
+    // Call backend login endpoint
+    const user = await userAPI.login(email, password);
     const loginUser = {
-      id: Date.now(),
-      email,
-      name: email.split("@")[0],
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      phone: user.phoneNumber,
+      address: user.address
     };
     localStorage.setItem("user", JSON.stringify(loginUser));
     setUser(loginUser);

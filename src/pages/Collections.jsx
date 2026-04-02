@@ -1,13 +1,24 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import watch17 from "../assets/images/watch17.png";
 import watch18 from "../assets/images/watch18.png";
 import watch19 from "../assets/images/watch19.png";
 import watch7 from "../assets/images/watch7.png";
 import WatchGrid from "../components/watches/WatchGrid";
-import { watches } from "../services/watchService";
+import { watchAPI } from "../services/api";
 
 const Collections = () => {
   const [selectedCollection, setSelectedCollection] = useState(null);
+  const [page, setPage] = useState(0);
+  const [size] = useState(9);
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortDir, setSortDir] = useState('desc');
+  const [pageContent, setPageContent] = useState([]);
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedBrand, setSelectedBrand] = useState('All');
 
   const collections = [
     {
@@ -47,6 +58,38 @@ const Collections = () => {
       icon: "💎",
     },
   ];
+
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const resp = await watchAPI.getAllWatches({ page, size, sortBy, sortDir });
+        if (!mounted) return;
+        setPageContent(resp.content || []);
+        setTotalElements(resp.totalElements || 0);
+        setTotalPages(resp.totalPages || 0);
+      } catch (err) {
+        if (!mounted) return;
+        setError(err.message || 'Failed to load watches');
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    load();
+    return () => { mounted = false; };
+  }, [page, size, sortBy, sortDir]);
+
+  // Client-side filter by search query and brand
+  const filteredWatches = pageContent.filter(w => {
+    const matchSearch = searchQuery.trim() === '' ||
+      w.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      w.brand?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      w.model?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchBrand = selectedBrand === 'All' || w.brand === selectedBrand;
+    return matchSearch && matchBrand;
+  });
 
   return (
     <div className="page-container">
@@ -297,7 +340,73 @@ const Collections = () => {
           </div>
         </div>
 
-        <WatchGrid watches={watches} />
+        <div style={{ marginBottom: "30px", display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
+          {/* Search bar */}
+          <div style={{ position: 'relative', flex: '1', minWidth: '220px', maxWidth: '360px' }}>
+            <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#d4af37', fontSize: '16px', pointerEvents: 'none' }}>🔍</span>
+            <input
+              type="text"
+              placeholder="Search watches, brands..."
+              value={searchQuery}
+              onChange={(e) => { setSearchQuery(e.target.value); setPage(0); }}
+              style={{
+                width: '100%', padding: '10px 14px 10px 40px',
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(212,175,55,0.4)',
+                borderRadius: '8px', color: '#fff', fontSize: '14px',
+                outline: 'none', boxSizing: 'border-box',
+              }}
+            />
+          </div>
+
+          {/* Brand filter */}
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {['All', 'Rolex', 'Omega', 'TAG Heuer', 'Patek Philippe', 'Cartier', 'Breitling'].map(brand => (
+              <button
+                key={brand}
+                onClick={() => { setSelectedBrand(brand); setPage(0); }}
+                style={{
+                  padding: '7px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: '600', cursor: 'pointer',
+                  border: selectedBrand === brand ? 'none' : '1px solid rgba(212,175,55,0.4)',
+                  background: selectedBrand === brand ? 'linear-gradient(135deg,#d4af37,#c9a961)' : 'transparent',
+                  color: selectedBrand === brand ? '#0a0a0a' : '#d4af37',
+                  transition: 'all 0.2s',
+                }}
+              >{brand}</button>
+            ))}
+          </div>
+
+          {/* Sort + count */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div>
+              <label style={{ color: '#b0b0b0', marginRight: 8, fontSize: '13px' }}>Sort:</label>
+              <select value={sortBy + '|' + sortDir} onChange={(e) => {
+                const [sBy, sDir] = e.target.value.split('|');
+                setSortBy(sBy); setSortDir(sDir); setPage(0);
+              }} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(212,175,55,0.4)', color: '#fff', borderRadius: '6px', padding: '6px 10px' }}>
+                <option value="createdAt|desc">Newest</option>
+                <option value="createdAt|asc">Oldest</option>
+                <option value="price|asc">Price: Low → High</option>
+                <option value="price|desc">Price: High → Low</option>
+                <option value="name|asc">Name A → Z</option>
+                <option value="name|desc">Name Z → A</option>
+              </select>
+            </div>
+            <div style={{ color: '#b0b0b0', fontSize: '13px' }}>
+              {filteredWatches.length} watches
+            </div>
+          </div>
+        </div>
+
+        <WatchGrid watches={filteredWatches} />
+
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 20 }}>
+          <button disabled={page <= 0} onClick={() => setPage((p) => Math.max(0, p - 1))}>Prev</button>
+          <div style={{ padding: '6px 12px', background: 'rgba(255,255,255,0.02)', borderRadius: 4 }}>
+            Page {page + 1} of {totalPages}
+          </div>
+          <button disabled={page >= totalPages - 1} onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}>Next</button>
+        </div>
       </div>
 
       {/* Premium Benefits Section */}

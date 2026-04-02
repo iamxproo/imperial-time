@@ -12,9 +12,17 @@ import com.imperialtime.model.Watch;
 public interface WatchRepository extends JpaRepository<Watch, Long> {
     Optional<Watch> findBySku(String sku);
     
-    List<Watch> findByBrand(String brand);
-    
+    List<Watch> findByBrandIgnoreCase(String brand);
+
     List<Watch> findByActive(Boolean active);
     
+    List<Watch> findByActiveTrue();
+    
     List<Watch> findByBrandAndActive(String brand, Boolean active);
+    
+    List<Watch> findByNameContainingIgnoreCase(String name);
+    
+    List<Watch> findByNameContainingIgnoreCaseOrBrandContainingIgnoreCase(String name, String brand);
+    
+    List<Watch> findByModelIgnoreCase(String model);
 }

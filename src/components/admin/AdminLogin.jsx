@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { adminAPI } from '../../services/api';
 import './AdminLogin.css';
 
 const AdminLogin = () => {
@@ -15,25 +16,12 @@ const AdminLogin = () => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:8080/api/admin/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('adminToken', data.token);
-        localStorage.setItem('adminUser', JSON.stringify(data));
-        navigate('/admin/dashboard');
-      } else {
-        const errorData = await response.text();
-        setError(errorData || 'Invalid email or password');
-      }
+      const data = await adminAPI.login(email, password);
+      localStorage.setItem('adminToken', data.token);
+      localStorage.setItem('adminUser', JSON.stringify(data));
+      navigate('/admin/dashboard');
     } catch (err) {
-      setError('Login failed. Please ensure backend is running on http://localhost:8080');
+      setError('Invalid email or password');
       console.error('Login error:', err);
     } finally {
       setLoading(false);

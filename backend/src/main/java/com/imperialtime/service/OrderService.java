@@ -82,6 +82,30 @@ public class OrderService {
         Optional<Order> order = orderRepository.findById(orderId);
         return order.map(this::convertToOrderDTO).orElse(null);
     }
+
+    // Cancel order — only allowed within 5 days of placing (delivery window is 5-6 days)
+    public String cancelOrder(Long orderId) {
+        Optional<Order> orderOpt = orderRepository.findById(orderId);
+        if (orderOpt.isEmpty()) return "Order not found";
+        Order order = orderOpt.get();
+        if (order.getStatus().equals("CANCELLED")) return "Order is already cancelled";
+        if (order.getStatus().equals("DELIVERED")) return "Delivered orders cannot be cancelled";
+        long fiveDaysMs = 5L * 24 * 60 * 60 * 1000;
+        long elapsed = System.currentTimeMillis() - order.getCreatedAt();
+        if (elapsed > fiveDaysMs) return "Cancellation window has passed (5 days)";
+        order.setStatus("CANCELLED");
+        orderRepository.save(order);
+        return "CANCELLED";
+    }
+
+    public List<OrderDTO> getOrdersByUserId(Long userId) {
+        List<Order> orders = orderRepository.findByUserId(userId);
+        List<OrderDTO> dtos = new ArrayList<>();
+        for (Order o : orders) {
+            dtos.add(convertToOrderDTO(o));
+        }
+        return dtos;
+    }
     
     private OrderDTO convertToOrderDTO(Order order) {
         return new OrderDTO(

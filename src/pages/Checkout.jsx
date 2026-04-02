@@ -1,13 +1,21 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import UPIPayment from "../components/payment/UPIPayment";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
+import { orderAPI } from "../services/api";
 
 const Checkout = () => {
   const { cart, clearCart } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
+  
+  // Require login before checkout to ensure orders are tied to a user account
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
   const [showPayment, setShowPayment] = useState(false);
   const [orderDetails, setOrderDetails] = useState({
     name: user?.name || "",
@@ -32,8 +40,37 @@ const Checkout = () => {
     setShowPayment(true);
   };
 
-  const handlePaymentSuccess = (paymentData) => {
-    // Simple demo mode - just show success without backend
+  const handlePaymentSuccess = async (paymentData) => {
+    // Prepare order data for backend
+    const orderItems = cart.map(item => ({
+      watchId: item.id,
+      quantity: item.quantity || 1,
+      price: item.price
+    }));
+
+    // Create order in backend
+    let backendOrderId = null;
+    try {
+      const backendOrder = await orderAPI.createOrder({
+        userId: user?.id || null,
+        customerName: orderDetails.name,
+        customerEmail: orderDetails.email,
+        customerPhone: orderDetails.phone,
+        shippingAddress: orderDetails.address,
+        billingAddress: orderDetails.address,
+        upiId: paymentData.upiId,
+        subtotal: subtotal,
+        tax: Math.round(tax),
+        totalAmount: Math.round(total),
+        items: orderItems
+      });
+      backendOrderId = backendOrder.id;
+    } catch (error) {
+      console.error('Backend order creation failed, using local order:', error);
+      // Continue with local order even if backend fails
+    }
+
+    // Prepare local order data for display
     const items = cart.map(item => ({
       id: item.id,
       name: item.name,
@@ -42,7 +79,7 @@ const Checkout = () => {
     }));
 
     const orderData = {
-      id: Math.floor(Math.random() * 10000) + 1,
+      id: backendOrderId || Math.floor(Math.random() * 10000) + 1,
       orderNumber: `IMP-${Date.now()}`,
       status: "COMPLETED",
       paymentMethod: "UPI",

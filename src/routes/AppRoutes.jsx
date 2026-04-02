@@ -4,6 +4,8 @@ import AdminDashboard from "../components/admin/AdminDashboard";
 import AdminLogin from "../components/admin/AdminLogin";
 import Login from "../components/auth/Login";
 import Register from "../components/auth/Register";
+import ConnectionTest from "../components/ConnectionTest";
+import { useAuth } from "../context/AuthContext";
 import Account from "../pages/Account";
 import CartPage from "../pages/CartPage";
 import Checkout from "../pages/Checkout";
@@ -15,9 +17,11 @@ import Reviews from "../pages/Reviews";
 import WatchDetails from "../pages/WatchDetails";
 
 const AppRoutes = () => {
+  const { user } = useAuth();
+
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
+      <Route path="/" element={user ? <Home /> : <Login />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/collections" element={<Collections />} />
@@ -29,7 +33,8 @@ const AppRoutes = () => {
       <Route path="/order-success" element={<OrderSuccess />} />
       <Route path="/account" element={<Account />} />
       <Route path="/admin/login" element={<AdminLogin />} />
-      <Route path="/admin/dashboard" element={<AdminDashboard />} />
+  <Route path="/admin/dashboard" element={localStorage.getItem('adminToken') ? <AdminDashboard /> : <AdminLogin />} />
+      <Route path="/test-connection" element={<ConnectionTest />} />
     </Routes>
   );
 };

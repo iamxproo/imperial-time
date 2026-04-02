@@ -20,7 +20,7 @@ const Register = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
@@ -50,24 +50,24 @@ const Register = () => {
     }
 
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      try {
-        register({
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          address: "",
-          city: "",
-          zipCode: "",
-        });
-        navigate("/account");
-      } catch (err) {
-        setError("Registration failed. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    }, 1000);
+    try {
+  const res = await register({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+        address: "",
+        city: "",
+        zipCode: "",
+      });
+  // Show success message then redirect to login for explicit sign-in
+  alert('Registration successful. Please log in using your credentials.');
+  navigate('/login');
+    } catch (err) {
+      setError(err.message || "Registration failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

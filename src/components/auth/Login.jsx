@@ -10,7 +10,7 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
@@ -30,17 +30,14 @@ const Login = () => {
     }
 
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      try {
-        login(email, password);
-        navigate("/account");
-      } catch (err) {
-        setError("Login failed. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    }, 1000);
+    try {
+      await login(email, password);
+      navigate("/account");
+    } catch (err) {
+      setError(err.message || "Login failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

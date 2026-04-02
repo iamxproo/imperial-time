@@ -326,6 +326,14 @@ const Footer = () => {
             © 2026 IMPERIAL TIME. All Rights Reserved. | Designed & Developed by <span style={{ color: "#d4af37", fontWeight: "700" }}>Samarth Karale</span>
           </p>
           <p style={{
+            color: "#999",
+            fontSize: "11px",
+            marginTop: "6px",
+            marginBottom: "8px",
+          }}>
+            This project is built for personal practice and learning purposes.
+          </p>
+          <p style={{
             color: "#666",
             fontSize: "11px",
             letterSpacing: "0.5px",

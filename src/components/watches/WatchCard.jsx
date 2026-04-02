@@ -5,6 +5,18 @@ const WatchCard = ({ watch }) => {
   const { addToCart } = useCart();
   const [isHovered, setIsHovered] = useState(false);
 
+  // Backend returns imageUrl (e.g. /assets/images/watch1.png), frontend uses watch.image for local imports.
+  // Resolve: prefer imageUrl, fall back to image. If path starts with /assets, serve from frontend origin.
+  const resolveImage = (w) => {
+    const raw = w.imageUrl || w.image || '';
+    if (!raw) return '';
+    // Already an absolute URL or data URI — use as-is
+    if (raw.startsWith('http') || raw.startsWith('data:')) return raw;
+    // Relative path — Vite serves /assets/images/* from the frontend; use it directly
+    return raw;
+  };
+  const imageSrc = resolveImage(watch);
+
   const handleAddToCart = () => {
     addToCart(watch);
   };
@@ -68,7 +80,7 @@ const WatchCard = ({ watch }) => {
       <div className="watch-card-container">
         <div style={{ ...styles.imgBox, position: "relative" }}>
           <div className="watch-image-glow" style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <img src={watch.image} alt={watch.name} style={{
+            <img src={imageSrc} alt={watch.name} style={{
               ...styles.img,
               transition: "all 0.3s ease",
               transform: isHovered ? "scale(1.1)" : "scale(1)",

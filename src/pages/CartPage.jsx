@@ -112,7 +112,7 @@ const CartPage = () => {
                   </div>
 
                   <img
-                    src={item.image}
+                    src={item.imageUrl || item.image || ''}
                     alt={item.name}
                     style={{
                       width: "100%",
@@ -122,6 +122,7 @@ const CartPage = () => {
                       display: "block",
                       transition: "transform 0.3s ease",
                     }}
+                    onError={(e) => { e.target.style.opacity = '0.2'; }}
                     onMouseEnter={(e) => {
                       e.target.style.transform = "scale(1.05)";
                     }}
@@ -259,11 +260,11 @@ const CartPage = () => {
               gridTemplateColumns: "1fr 1fr",
               gap: "20px",
             }}>
-              <Link to="/collections" style={{ textDecoration: "none" }}>
+              <Link to="/collections" style={{ textDecoration: "none", display: "block" }}>
                 <button
                   style={{
                     width: "100%",
-                    padding: "14px",
+                    padding: "16px",
                     background: "transparent",
                     border: "2px solid #d4af37",
                     color: "#d4af37",
@@ -274,26 +275,45 @@ const CartPage = () => {
                     letterSpacing: "1px",
                     textTransform: "uppercase",
                     transition: "all 0.3s ease",
+                    boxSizing: "border-box",
                   }}
                   onMouseEnter={(e) => {
-                    e.target.style.background = "#d4af37";
-                    e.target.style.color = "#0a0a0a";
+                    e.currentTarget.style.background = "#d4af37";
+                    e.currentTarget.style.color = "#0a0a0a";
                   }}
                   onMouseLeave={(e) => {
-                    e.target.style.background = "transparent";
-                    e.target.style.color = "#d4af37";
+                    e.currentTarget.style.background = "transparent";
+                    e.currentTarget.style.color = "#d4af37";
                   }}
                 >
                   Continue Shopping
                 </button>
               </Link>
 
-              <Link to="/checkout" style={{ textDecoration: "none" }}>
+              <Link to="/checkout" style={{ textDecoration: "none", display: "block" }}>
                 <button
-                  className="lux-btn"
                   style={{
                     width: "100%",
-                    padding: "14px",
+                    padding: "16px",
+                    background: "linear-gradient(135deg, #d4af37, #c9a961)",
+                    border: "none",
+                    color: "#0a0a0a",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontWeight: "800",
+                    fontSize: "14px",
+                    letterSpacing: "1px",
+                    textTransform: "uppercase",
+                    transition: "all 0.3s ease",
+                    boxSizing: "border-box",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "linear-gradient(135deg, #c9a961, #b8983f)";
+                    e.currentTarget.style.boxShadow = "0 6px 20px rgba(212,175,55,0.4)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "linear-gradient(135deg, #d4af37, #c9a961)";
+                    e.currentTarget.style.boxShadow = "none";
                   }}
                 >
                   Proceed to Checkout

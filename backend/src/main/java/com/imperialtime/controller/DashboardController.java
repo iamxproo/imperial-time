@@ -78,4 +78,22 @@ public class DashboardController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    @GetMapping("/sales/week")
+    public ResponseEntity<?> getWeeklySales(@RequestParam(defaultValue = "4") int weeks) {
+        try {
+            return ResponseEntity.ok(dashboardService.getWeeklySales(weeks));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/sales/month")
+    public ResponseEntity<?> getMonthlySales(@RequestParam(defaultValue = "6") int months) {
+        try {
+            return ResponseEntity.ok(dashboardService.getMonthlySales(months));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { dashboardAPI } from '../../services/api';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -13,18 +14,15 @@ const AdminDashboard = () => {
       navigate('/admin/login');
       return;
     }
-    fetchDashboardData();
+  fetchDashboardData();
+  const interval = setInterval(fetchDashboardData, 5000); // poll every 5s
+  return () => clearInterval(interval);
   }, [navigate]);
 
   const fetchDashboardData = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/dashboard/overview');
-      if (response.ok) {
-        const data = await response.json();
-        setDashboard(data);
-      } else {
-        console.error('Failed to fetch dashboard:', response.status);
-      }
+      const data = await dashboardAPI.getOverview();
+      setDashboard(data);
     } catch (err) {
       console.error('Error fetching dashboard:', err);
     } finally {
