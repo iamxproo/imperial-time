@@ -1,0 +1,22 @@
+name: Keep Alive - Ping Backend
+
+on:
+  schedule:
+    # Runs every 10 minutes
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Backend to keep Render + Aiven alive
+        run: |
+          echo "Pinging Imperial Time backend..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://imperial-time-backend.onrender.com/api/watches)
+          echo "Response status: $STATUS"
+          if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 500 ]; then
+            echo "✅ Backend is alive!"
+          else
+            echo "⚠️ Backend returned status $STATUS"
+          fi
