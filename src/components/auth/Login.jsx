@@ -341,6 +341,24 @@ const Login = () => {
         }}>
           🔐 Secured by Imperial Time &nbsp;·&nbsp; Luxury Since 2026
         </p>
+
+        {/* Hidden admin access — subtle, low-key */}
+        <p style={{ textAlign: "center", marginTop: "18px" }}>
+          <Link
+            to="/admin/login"
+            style={{
+              color: "rgba(255,255,255,0.12)",
+              fontSize: "10px",
+              textDecoration: "none",
+              letterSpacing: "1px",
+              transition: "color 0.3s ease",
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.color = "rgba(212,175,55,0.45)"}
+            onMouseLeave={(e) => e.currentTarget.style.color = "rgba(255,255,255,0.12)"}
+          >
+            system access
+          </Link>
+        </p>
       </div>
     </div>
   );
